@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasar Aritmetika 3D - Petualangan Pedagang Cilik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Family Fredoka & Poppins for cute clay feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            font-family: 'Fredoka', 'Poppins', sans-serif;
+            user-select: none;
+        }
+
+        /* Custom 3D Claymation CSS Styling */
+        .clay-card {
+            background: #ffffff;
+            border: 4px solid #3b82f6;
+            border-radius: 28px;
+            box-shadow: 0 12px 0px 0px #1d4ed8, 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .clay-card-orange {
+            background: #fff7ed;
+            border: 4px solid #f97316;
+            border-radius: 28px;
+            box-shadow: 0 12px 0px 0px #c2410c, 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .clay-btn {
+            border-radius: 20px;
+            border: 3px solid rgba(0,0,0,0.15);
+            box-shadow: 0 6px 0px 0px rgba(0,0,0,0.25);
+            transition: all 0.1s ease;
+            position: relative;
+            top: 0;
+        }
+
+        .clay-btn:active:not(:disabled) {
+            top: 5px;
+            box-shadow: 0 1px 0px 0px rgba(0,0,0,0.25);
+        }
+
+        .clay-btn-green {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            border-color: #166534;
+            box-shadow: 0 6px 0px 0px #15803d;
+        }
+
+        .clay-btn-orange {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            color: white;
+            border-color: #9a3412;
+            box-shadow: 0 6px 0px 0px #c2410c;
+        }
+
+        .clay-btn-blue {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            border-color: #1e40af;
+            box-shadow: 0 6px 0px 0px #1d4ed8;
+        }
+
+        .clay-btn-yellow {
+            background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+            color: #713f12;
+            border-color: #854d0e;
+            box-shadow: 0 6px 0px 0px #ca8a04;
+        }
+
+        .clay-badge {
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .clay-avatar-selected {
+            border: 5px solid #22c55e !important;
+            transform: scale(1.08);
+            box-shadow: 0 10px 0 #15803d;
+        }
+
+        /* Certificate Print Styling */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #certificate-area, #certificate-area * {
+                visibility: visible;
+            }
+            #certificate-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none !important;
+                border: 8px solid #d97706 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Pulse Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-orange-200">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-amber-400 border-b-4 border-amber-600 px-4 py-3 sticky top-0 z-30 shadow-md">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-md border-2 border-orange-700">
+                    <i class="fa-solid font-bold fa-store"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-amber-950 tracking-wide drop-shadow-sm">PASAR ARITMETIKA 3D</h1>
+                    <p class="text-xs text-amber-900 font-semibold hidden sm:block">Aritmetika Sosial SMP Kelas 7 - HOTS Edition</p>
+                </div>
+            </div>
+
+            <!-- Stats Header (Shown during game) -->
+            <div id="game-stats-header" class="hidden flex items-center gap-3">
+                <div class="bg-amber-100 border-2 border-amber-500 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-coins text-yellow-500 text-lg"></i>
+                    <span id="player-coins" class="font-bold text-amber-900 text-sm md:text-base">0</span>
+                </div>
+                <div class="bg-amber-100 border-2 border-amber-500 px-3 py-1 rounded-full flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-trophy text-orange-500 text-lg"></i>
+                    <span id="player-score" class="font-bold text-amber-900 text-sm md:text-base">0 Pts</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="max-w-4xl mx-auto w-full p-4 flex-grow flex flex-col justify-center">
+
+        <!-- 1. REGISTRATION SCREEN -->
+        <section id="screen-register" class="clay-card-orange p-6 md:p-8 my-4 text-center">
+            <div class="inline-block p-4 bg-orange-200 rounded-full mb-3 border-4 border-orange-400 animate-float">
+                <span class="text-5xl">🛒</span>
+            </div>
+            <h2 class="text-3xl font-extrabold text-orange-950 mb-2">Selamat Datang di Pasar Aritmetika!</h2>
+            <p class="text-orange-900 text-sm md:text-base mb-6 max-w-lg mx-auto">
+                Bantu para pedagang pasar tradisional menyelesaikan perhitungan transaksi dagang dengan cepat & tepat!
+            </p>
+
+            <form id="form-register" onsubmit="startGame(event)" class="max-w-md mx-auto space-y-4">
+                <div class="text-left">
+                    <label class="block text-amber-900 font-bold mb-1 text-sm"><i class="fa-solid fa-user"></i> Nama Lengkap Siswa:</label>
+                    <input type="text" id="input-name" required placeholder="Masukkan nama kamu..." 
+                           class="w-full px-4 py-3 rounded-2xl border-3 border-orange-300 focus:border-orange-500 focus:outline-none shadow-inner font-semibold text-lg text-orange-950 bg-white">
+                </div>
+
+                <div class="text-left">
+                    <label class="block text-amber-900 font-bold mb-1 text-sm"><i class="fa-solid fa-graduation-cap"></i> Kelas (SMP 7):</label>
+                    <select id="input-class" required class="w-full px-4 py-3 rounded-2xl border-3 border-orange-300 focus:border-orange-500 focus:outline-none shadow-inner font-semibold text-lg text-orange-950 bg-white">
+                        <option value="7-A">7-A</option>
+                        <option value="7-B">7-B</option>
+                        <option value="7-C">7-C</option>
+                        <option value="7-D">7-D</option>
+                        <option value="7-E">7-E</option>
+                    </select>
+                </div>
+
+                <!-- Avatar Selection -->
+                <div class="text-left">
+                    <label class="block text-amber-900 font-bold mb-2 text-sm"><i class="fa-solid fa-user-astronaut"></i> Pilih Karakter Pedagang Cilik:</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div onclick="selectAvatar('mang_ujang')" id="avatar-mang_ujang" class="clay-avatar-selected avatar-option cursor-pointer bg-amber-100 p-3 rounded-2xl border-4 border-amber-300 text-center hover:scale-105 transition">
+                            <div class="text-4xl mb-1">🥭</div>
+                            <div class="font-bold text-xs text-amber-900">Mang Ujang</div>
+                            <div class="text-[10px] text-amber-700">Buah Fresh</div>
+                        </div>
+                        <div onclick="selectAvatar('uni_resti')" id="avatar-uni_resti" class="avatar-option cursor-pointer bg-amber-100 p-3 rounded-2xl border-4 border-amber-300 text-center hover:scale-105 transition">
+                            <div class="text-4xl mb-1">👗</div>
+                            <div class="font-bold text-xs text-amber-900">Uni Resti</div>
+                            <div class="text-[10px] text-amber-700">Grosir Baju</div>
+                        </div>
+                        <div onclick="selectAvatar('pak_budi')" id="avatar-pak_budi" class="avatar-option cursor-pointer bg-amber-100 p-3 rounded-2xl border-4 border-amber-300 text-center hover:scale-105 transition">
+                            <div class="text-4xl mb-1">🌾</div>
+                            <div class="font-bold text-xs text-amber-900">Pak Budi</div>
+                            <div class="text-[10px] text-amber-700">Toko Sembako</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 mt-4 clay-btn clay-btn-green font-extrabold text-xl uppercase tracking-wider">
+                    <i class="fa-solid fa-play mr-2"></i> Mulai Petualangan!
+                </button>
+            </form>
+        </section>
+
+        <!-- 2. LEVEL SELECTION MAP SCREEN -->
+        <section id="screen-levels" class="hidden clay-card p-6 md:p-8 my-4 text-center">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="showScreen('screen-register')" class="clay-btn clay-btn-yellow px-3 py-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-arrow-left"></i> Ganti Profil
+                </button>
+                <div class="text-right">
+                    <span class="text-xs font-bold text-slate-500 block">Identitas Pedagang:</span>
+                    <span id="player-tag" class="text-sm font-extrabold text-blue-900">Nama (7-A)</span>
+                </div>
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-black text-blue-950 mb-1">Pilih Lapak Pasar (Level)</h2>
+            <p class="text-slate-600 text-xs md:text-sm mb-6">Selesaikan semua lapak untuk meraih Sertifikat Pedagang Sukses!</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Level 1 Card -->
+                <div id="card-level-1" class="bg-gradient-to-b from-amber-100 to-orange-100 p-5 rounded-3xl border-4 border-orange-400 shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="text-5xl mb-2">🍎</div>
+                        <span class="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Level 1</span>
+                        <h3 class="font-extrabold text-lg text-orange-950 mt-2">Lapak Buah Fresh</h3>
+                        <p class="text-xs text-orange-800 mt-1 font-medium">Untung, Rugi, Harga Jual & Harga Beli</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-orange-200">
+                        <div id="status-level-1" class="text-xs font-bold text-orange-700 mb-2">Status: Terbuka</div>
+                        <button onclick="startLevel(1)" class="w-full py-2.5 clay-btn clay-btn-orange text-sm font-extrabold">
+                            Buka Lapak <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Level 2 Card -->
+                <div id="card-level-2" class="bg-gradient-to-b from-blue-50 to-indigo-100 p-5 rounded-3xl border-4 border-slate-300 opacity-60 shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="text-5xl mb-2">🏪</div>
+                        <span class="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Level 2</span>
+                        <h3 class="font-extrabold text-lg text-blue-950 mt-2">Toko Sembako Barokah</h3>
+                        <p class="text-xs text-blue-900 mt-1 font-medium">Persentase Untung/Rugi, Diskon & Rabat</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-blue-200">
+                        <div id="status-level-2" class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-lock"></i> Terkunci</div>
+                        <button id="btn-level-2" disabled onclick="startLevel(2)" class="w-full py-2.5 clay-btn clay-btn-blue text-sm font-extrabold opacity-50 cursor-not-allowed">
+                            Buka Lapak <i class="fa-solid fa-lock ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Level 3 Card -->
+                <div id="card-level-3" class="bg-gradient-to-b from-emerald-50 to-teal-100 p-5 rounded-3xl border-4 border-slate-300 opacity-60 shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="text-5xl mb-2">👔</div>
+                        <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Level 3</span>
+                        <h3 class="font-extrabold text-lg text-emerald-950 mt-2">Grosir Pakaian Jaya</h3>
+                        <p class="text-xs text-emerald-900 mt-1 font-medium">Bruto, Netto, Tara, Pajak PPN & Bunga</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-200">
+                        <div id="status-level-3" class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-lock"></i> Terkunci</div>
+                        <button id="btn-level-3" disabled onclick="startLevel(3)" class="w-full py-2.5 clay-btn clay-btn-green text-sm font-extrabold opacity-50 cursor-not-allowed">
+                            Buka Lapak <i class="fa-solid fa-lock ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Certificate Button (if completed all levels) -->
+            <div id="cert-unlocked-banner" class="hidden mt-6 p-4 bg-yellow-100 border-4 border-yellow-400 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-3 text-left">
+                    <span class="text-4xl">🏆</span>
+                    <div>
+                        <h4 class="font-black text-yellow-950 text-base">Selamat! Semua Lapak Selesai!</h4>
+                        <p class="text-xs text-yellow-900">Kamu berhak menerima Sertifikat Pedagang Aritmetika Sukses.</p>
+                    </div>
+                </div>
+                <button onclick="generateCertificate()" class="clay-btn clay-btn-yellow px-5 py-3 font-extrabold text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-certificate mr-1"></i> Lihat Sertifikat
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. GAMEPLAY SCREEN (QUIZ HOTS) -->
+        <section id="screen-gameplay" class="hidden clay-card p-5 md:p-7 my-2">
+            <!-- Top Progress Info -->
+            <div class="flex flex-wrap justify-between items-center border-b-2 border-slate-200 pb-3 mb-4 gap-2">
+                <div class="flex items-center gap-2">
+                    <span id="level-badge" class="bg-orange-500 text-white text-xs font-black px-3 py-1 rounded-full">LEVEL 1</span>
+                    <span id="question-type-badge" class="bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full">Pilihan Ganda</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-500">Soal <span id="current-q-num">1</span> dari <span id="total-q-num">4</span></span>
+                    <!-- Progress bar -->
+                    <div class="w-24 bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">
+                        <div id="q-progress-bar" class="bg-green-500 h-full transition-all duration-300" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contextual Merchant Story / Question -->
+            <div class="bg-amber-50 border-3 border-amber-300 rounded-2xl p-4 mb-5 shadow-sm flex items-start gap-3">
+                <div id="merchant-avatar" class="text-4xl shrink-0 p-2 bg-white rounded-2xl border-2 border-amber-300">🥭</div>
+                <div>
+                    <h3 id="merchant-dialog-title" class="font-bold text-xs text-amber-800 uppercase tracking-wider">Mang Ujang Bertanya:</h3>
+                    <p id="question-text" class="font-semibold text-slate-800 text-sm md:text-base leading-relaxed mt-0.5">
+                        [Teks Soal HOTS Akan Tampil Di Sini]
+                    </p>
+                </div>
+            </div>
+
+            <!-- QUIZ DYNAMIC INTERFACE CONTAINERS -->
+            <div id="quiz-container" class="mb-5">
+                <!-- Single Choice Options -->
+                <div id="type-single-choice" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+                <!-- Multiple Choice (Complex) Options -->
+                <div id="type-multiple-choice" class="space-y-2 hidden">
+                    <p class="text-xs font-bold text-orange-800 bg-orange-100 p-2 rounded-xl border border-orange-300 mb-2">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Pilih SEMUA pernyataan yang benar (Jawaban bisa lebih dari satu):
+                    </p>
+                    <div id="multiple-options-list" class="space-y-2"></div>
+                </div>
+
+                <!-- True / False Options -->
+                <div id="type-true-false" class="grid grid-cols-2 gap-4 hidden"></div>
+
+                <!-- Matching / Pairing Concept -->
+                <div id="type-matching" class="space-y-3 hidden">
+                    <p class="text-xs font-bold text-blue-800 bg-blue-100 p-2 rounded-xl border border-blue-300 mb-2">
+                        <i class="fa-solid fa-link mr-1"></i> Pasangkan nilai di sebelah kiri dengan keterangan yang sesuai di kanan:
+                    </p>
+                    <div id="matching-pairs-container" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS & FEEDBACK -->
+            <div id="feedback-box" class="hidden mb-4 p-4 rounded-2xl text-sm font-semibold border-3"></div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="quitToLevels()" class="clay-btn clay-btn-yellow px-4 py-2 text-xs font-extrabold">
+                    <i class="fa-solid fa-map"></i> Peta Lapak
+                </button>
+                <button id="btn-submit-answer" onclick="submitAnswer()" class="clay-btn clay-btn-green px-6 py-2.5 text-sm font-extrabold">
+                    Jawab Perhitungan <i class="fa-solid fa-check ml-1"></i>
+                </button>
+                <button id="btn-next-question" onclick="nextQuestion()" class="hidden clay-btn clay-btn-blue px-6 py-2.5 text-sm font-extrabold">
+                    Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. LEVEL COMPLETE SUMMARY SCREEN -->
+        <section id="screen-level-complete" class="hidden clay-card-orange p-6 md:p-8 my-4 text-center">
+            <div class="inline-block p-4 bg-yellow-200 rounded-full mb-2 border-4 border-yellow-400">
+                <span class="text-5xl">🎉</span>
+            </div>
+            <h2 class="text-3xl font-black text-orange-950 mb-1">Lapak Selesai Dikelola!</h2>
+            <p id="complete-level-title" class="text-amber-900 font-bold text-sm mb-4">Level 1: Lapak Buah Fresh</p>
+
+            <div class="bg-white/80 backdrop-blur border-3 border-orange-300 rounded-2xl p-4 max-w-sm mx-auto mb-6 space-y-2 text-left">
+                <div class="flex justify-between text-sm font-bold border-b border-orange-200 pb-2">
+                    <span class="text-slate-600">Jawaban Benar:</span>
+                    <span id="summary-correct" class="text-green-600 font-extrabold">0 / 0</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold border-b border-orange-200 pb-2">
+                    <span class="text-slate-600">Poin Level Ini:</span>
+                    <span id="summary-level-score" class="text-blue-600 font-extrabold">+0 Pts</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold">
+                    <span class="text-slate-600">Koin Keuntungan:</span>
+                    <span id="summary-coins" class="text-yellow-600 font-extrabold">+0 Koin</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="showScreen('screen-levels')" class="clay-btn clay-btn-yellow px-6 py-3 font-extrabold text-sm">
+                    <i class="fa-solid fa-map mr-1"></i> Kembali ke Peta Lapak
+                </button>
+                <button id="btn-continue-next-level" onclick="continueToNextLevel()" class="clay-btn clay-btn-green px-6 py-3 font-extrabold text-sm">
+                    Lanjut Lapak Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 5. DIGITAL CERTIFICATE GENERATOR SCREEN -->
+        <section id="screen-certificate" class="hidden my-4">
+            <div class="no-print mb-4 flex justify-between items-center">
+                <button onclick="showScreen('screen-levels')" class="clay-btn clay-btn-yellow px-4 py-2 text-xs font-bold">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali Ke Game
+                </button>
+                <button onclick="window.print()" class="clay-btn clay-btn-green px-6 py-2.5 text-sm font-extrabold">
+                    <i class="fa-solid fa-print mr-2"></i> Cetak / Simpan PDF
+                </button>
+            </div>
+
+            <!-- Printable Certificate Body -->
+            <div id="certificate-area" class="bg-gradient-to-br from-amber-50 via-white to-amber-100 border-8 border-amber-600 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden text-center">
+                <!-- Decorative Corner Badges -->
+                <div class="absolute top-3 left-3 text-amber-500 opacity-30 text-4xl"><i class="fa-solid fa-award"></i></div>
+                <div class="absolute top-3 right-3 text-amber-500 opacity-30 text-4xl"><i class="fa-solid fa-award"></i></div>
+                
+                <div class="border-4 border-dashed border-amber-300 p-6 md:p-8 rounded-2xl">
+                    <div class="flex justify-center items-center gap-2 mb-2">
+                        <span class="text-3xl">🏆</span>
+                        <h2 class="text-2xl md:text-3xl font-black tracking-widest text-amber-950 uppercase">SERTIFIKAT PENGHARGAAN</h2>
+                        <span class="text-3xl">🏆</span>
+                    </div>
+                    <p class="text-xs md:text-sm font-extrabold text-amber-700 tracking-wider uppercase mb-6">Pedagang Cilik Handal Aritmetika Sosial</p>
+
+                    <p class="text-slate-600 text-xs md:text-sm italic">Diberikan secara bangga kepada siswa:</p>
+                    <h3 id="cert-student-name" class="text-2xl md:text-4xl font-black text-blue-950 my-2 underline decoration-amber-400">NAMA SISWA</h3>
+                    <p id="cert-student-class" class="text-sm font-bold text-amber-900 mb-6">Kelas: 7-A | SMP Negeri Matematika</p>
+
+                    <p class="text-slate-700 text-xs md:text-sm max-w-lg mx-auto mb-6">
+                        Telah berhasil menyelesaikan seluruh tantangan perhitungan analisis bisnis pada 
+                        <span class="font-bold text-orange-950">Pasar Aritmetika 3D</span> yang mencakup konsep Untung/Rugi, Diskon, Bruto-Netto-Tara, serta Bunga Bank & Pajak.
+                    </p>
+
+                    <!-- Score Breakdown Grid -->
+                    <div class="grid grid-cols-3 gap-2 max-w-md mx-auto mb-6 text-left bg-white/90 p-3 rounded-xl border border-amber-200 shadow-sm text-xs">
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">Total Skor:</span>
+                            <span id="cert-total-score" class="font-bold text-blue-900 text-sm">0 Pts</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">Koin Keuntungan:</span>
+                            <span id="cert-total-coins" class="font-bold text-amber-600 text-sm">0 Koin</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">Tanggal:</span>
+                            <span id="cert-date" class="font-bold text-slate-800 text-[11px]">26/10/2026</span>
+                        </div>
+                    </div>
+
+                    <!-- Predicate Stamp -->
+                    <div class="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white border-4 border-yellow-300 px-6 py-2 rounded-2xl shadow-md mb-6">
+                        <span class="text-[10px] uppercase font-bold tracking-widest block text-yellow-100">Predikat Kelulusan:</span>
+                        <span id="cert-predicate" class="text-xl md:text-2xl font-black uppercase tracking-wider">AMAT BAIK</span>
+                    </div>
+
+                    <!-- Signature Footer -->
+                    <div class="flex justify-between items-end pt-4 border-t border-amber-200 text-left text-xs text-slate-600">
+                        <div>
+                            <p class="font-bold text-amber-950">Pasar Aritmetika Interactive</p>
+                            <p class="text-[10px]">Media Pembelajaran HOTS SMP</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 mx-auto mb-1 bg-amber-400/20 rounded-full flex items-center justify-center border border-amber-400">
+                                <i class="fa-solid fa-stamp text-2xl text-amber-600"></i>
+                            </div>
+                            <span class="font-bold text-slate-800 text-[11px]">Verifikasi Guru Matematika</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-amber-950 text-amber-200/80 text-center py-3 text-xs font-medium border-t-4 border-amber-800 no-print">
+        <p>© 2026 Game Edukasi Matematika SMP Kelas 7 • Theme: Pasar Tradisional 3D Clay</p>
+    </footer>
+
+    <!-- JAVASCRIPT GAME ENGINE & DATA -->
+    <script>
+        /* --- AUDIO SYNTHESIZER (Web Audio API) --- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                osc.frequency.setValueAtTime(164.81, audioCtx.currentTime + 0.15); // E3
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } else if (type === 'win') {
+                // Fanfare short
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15);
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.45);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.7);
+            }
+        }
+
+        /* --- GAME STATE --- */
+        let player = {
+            name: '',
+            class: '7-A',
+            avatar: 'mang_ujang',
+            score: 0,
+            coins: 0,
+            levelScores: { 1: 0, 2: 0, 3: 0 },
+            unlockedLevel: 1
+        };
+
+        let currentLevel = 1;
+        let currentQuestionIdx = 0;
+        let selectedSingleChoice = null;
+        let selectedMultipleChoices = [];
+        let matchedPairsUser = {};
+
+        const avatarIcons = {
+            mang_ujang: { icon: '🥭', title: 'Mang Ujang (Pedagang Buah)' },
+            uni_resti: { icon: '👗', title: 'Uni Resti (Pedagang Pakaian)' },
+            pak_budi: { icon: '🌾', title: 'Pak Budi (Pedagang Sembako)' }
+        };
+
+        /* --- HOTS QUESTION BANK --- */
+        const quizData = {
+            1: [
+                {
+                    type: 'single',
+                    merchant: 'Mang Ujang',
+                    avatar: '🥭',
+                    question: 'Mang Ujang membeli 1 peti buah mangga seharga Rp250.000 dengan biaya angkut Rp20.000. Setelah dijual habis, Mang Ujang memperoleh total uang penjualan Rp330.000. Berapa keuntungan bersih yang diperoleh Mang Ujang?',
+                    options: [
+                        'Rp 60.000',
+                        'Rp 80.000',
+                        'Rp 100.000',
+                        'Rp 50.000'
+                    ],
+                    correct: 0, // Rp60.000 (Modal = 250k+20k = 270k. Untung = 330k - 270k = 60k)
+                    explanation: 'Modal Total = Harga Beli + Biaya Angkut = Rp250.000 + Rp20.000 = Rp270.000.<br>Untung = Selling Price - Modal = Rp330.000 - Rp270.000 = <b>Rp60.000</b>.'
+                },
+                {
+                    type: 'multiple',
+                    merchant: 'Mang Ujang',
+                    avatar: '🥭',
+                    question: 'Mang Ujang membeli 50 kg jeruk seharga Rp500.000. Karena sebagian busuk, ia menjual 30 kg jeruk bagus seharga Rp12.000/kg dan 20 kg sisa seharga Rp6.000/kg. Manakah analisis pernyataan berikut yang BENAR?',
+                    options: [
+                        'Total pendapatan penjualan adalah Rp480.000',
+                        'Mang Ujang mengalami kerugian sebesar Rp20.000',
+                        'Mang Ujang memperoleh keuntungan Rp20.000',
+                        'Harga modal per kg jeruk adalah Rp10.000'
+                    ],
+                    correct: [0, 1, 3], // 30*12k=360k, 20*6k=120k. Total=480k. Modal 500k -> Rugi 20k. Modal/kg = 500k/50 = 10k.
+                    explanation: '• Pendapatan = (30×12.000) + (20×6.000) = 360.000 + 120.000 = Rp480.000 (Benar)<br>• Modal = Rp500.000. Karena Pendapatan < Modal, Rugi = 500.000 - 480.000 = Rp20.000 (Benar)<br>• Modal per kg = 500.000 / 50 = Rp10.000 (Benar).'
+                },
+                {
+                    type: 'true_false',
+                    merchant: 'Mang Ujang',
+                    avatar: '🥭',
+                    question: 'Kasus Analisis: Jika seorang pedagang buah menjual barang dengan harga Rp150.000 dan mendapat keuntungan Rp30.000, maka persentase keuntungan pedagang tersebut dibanding modalnya adalah 25%.',
+                    options: ['BENAR', 'SALAH'],
+                    correct: 0, // BENAR. Modal = 150k - 30k = 120k. %Untung = (30k/120k)*100% = 25%.
+                    explanation: 'Harga Beli (Modal) = Harga Jual - Untung = 150.000 - 30.000 = Rp120.000.<br>% Untung = (30.000 / 120.000) × 100% = 1/4 × 100% = <b>25%</b>. Pernyataan adalah BENAR.'
+                },
+                {
+                    type: 'matching',
+                    merchant: 'Mang Ujang',
+                    avatar: '🥭',
+                    question: 'Pasangkan transaksi penjualan apel Mang Ujang berikut dengan kondisi finansial yang tepat:',
+                    pairs: [
+                        { id: 1, left: 'Beli Rp100.000, Jual Rp120.000', right: 'Untung Rp20.000' },
+                        { id: 2, left: 'Beli Rp150.000, Jual Rp135.000', right: 'Rugi Rp15.000' },
+                        { id: 3, left: 'Beli Rp200.000, Jual Rp200.000', right: 'Impas (Tak Untung/Rugi)' }
+                    ],
+                    explanation: 'Jual > Beli (Untung), Jual < Beli (Rugi), Jual = Beli (Impas).'
+                }
+            ],
+            2: [
+                {
+                    type: 'single',
+                    merchant: 'Pak Budi',
+                    avatar: '🌾',
+                    question: 'Pak Budi memberi diskon 20% untuk pembelian beras seharga Rp150.000 per karung. Jika pembeli membeli 2 karung beras, berapa total uang yang harus dibayar pembeli setelah diskon?',
+                    options: [
+                        'Rp 240.000',
+                        'Rp 270.000',
+                        'Rp 300.000',
+                        'Rp 210.000'
+                    ],
+                    correct: 0, // 2 karung = 300k. Diskon 20% = 60k. Bayar = 240k.
+                    explanation: 'Harga 2 karung = 2 × Rp150.000 = Rp300.000.<br>Diskon 20% = 20% × 300.000 = Rp60.000.<br>Total Bayar = Rp300.000 - Rp60.000 = <b>Rp240.000</b>.'
+                },
+                {
+                    type: 'multiple',
+                    merchant: 'Pak Budi',
+                    avatar: '🌾',
+                    question: 'Toko Sembako Barokah mengadakan promo "Beli Minyak Goreng Rp40.000 per Liter, Diskon 15%". Ibu Santi membeli 4 liter minyak goreng. Manakah pernyataan perhitungan yang BENAR?',
+                    options: [
+                        'Harga total sebelum diskon adalah Rp160.000',
+                        'Besar potongan diskon yang didapat Ibu Santi adalah Rp24.000',
+                        'Total pembayaran akhir Ibu Santi adalah Rp136.000',
+                        'Ibu Santi mendapat potongan sebesar Rp30.000'
+                    ],
+                    correct: [0, 1, 2], // Total=160k. Diskon=15%*160k=24k. Bayar=136k.
+                    explanation: '• Total awal = 4 × 40.000 = Rp160.000.<br>• Diskon = 15% × 160.000 = Rp24.000.<br>• Bayar = 160.000 - 24.000 = Rp136.000.'
+                },
+                {
+                    type: 'matching',
+                    merchant: 'Pak Budi',
+                    avatar: '🌾',
+                    question: 'Pasangkan persentase untung berikut berdasarkan modal dan keuntungannya:',
+                    pairs: [
+                        { id: 1, left: 'Modal Rp100.000, Untung Rp25.000', right: 'Persentase 25%' },
+                        { id: 2, left: 'Modal Rp200.000, Untung Rp20.000', right: 'Persentase 10%' },
+                        { id: 3, left: 'Modal Rp50.000, Untung Rp15.000', right: 'Persentase 30%' }
+                    ],
+                    explanation: 'Persentase Untung = (Untung / Modal) × 100%.'
+                },
+                {
+                    type: 'true_false',
+                    merchant: 'Pak Budi',
+                    avatar: '🌾',
+                    question: 'Analisis Rabat: Jika Pak Budi membeli 10 karton mie instan dan mendapat rincian cashback/rabat senilai 5% dari harga grosir Rp500.000, maka pengeluaran bersih Pak Budi adalah Rp475.000.',
+                    options: ['BENAR', 'SALAH'],
+                    correct: 0, // BENAR. Rabat 5% of 500k = 25k. Clean cost = 475k.
+                    explanation: 'Rabat/Potongan = 5% × 500.000 = Rp25.000.<br>Pengeluaran Bersih = 500.000 - 25.000 = <b>Rp475.000</b>. Pernyataan adalah BENAR.'
+                }
+            ],
+            3: [
+                {
+                    type: 'single',
+                    merchant: 'Uni Resti',
+                    avatar: '👗',
+                    question: 'Uni Resti menerima 1 karung pakaian grosir bertuliskan Bruto 50 kg dan Tara 2%. Berapakah berat bersih (Netto) pakaian yang diterima Uni Resti?',
+                    options: [
+                        '49.0 kg',
+                        '48.0 kg',
+                        '49.5 kg',
+                        '47.5 kg'
+                    ],
+                    correct: 0, // Tara = 2% of 50kg = 1kg. Netto = 50 - 1 = 49kg.
+                    explanation: 'Tara (Berat Kemasan) = 2% × 50 kg = 1 kg.<br>Netto (Berat Bersih) = Bruto - Tara = 50 kg - 1 kg = <b>49 kg</b>.'
+                },
+                {
+                    type: 'multiple',
+                    merchant: 'Uni Resti',
+                    avatar: '👗',
+                    question: 'Uni Resti membeli baju dari distributor seharga Rp100.000 per stel dan dikenakan Pajak Pertambahan Nilai (PPN) sebesar 11%. Manakah pernyataan berikut yang BENAR?',
+                    options: [
+                        'Pajak PPN per stel baju adalah Rp11.000',
+                        'Harga total yang harus dibayar Uni Resti per stel baju adalah Rp111.000',
+                        'Pajak menambah modal pembelian baju Uni Resti',
+                        'PPN mengurangi total harga bayar baju Uni Resti'
+                    ],
+                    correct: [0, 1, 2],
+                    explanation: '• PPN = 11% × Rp100.000 = Rp11.000.<br>• Total Bayar = 100.000 + 11.000 = Rp111.000.<br>• Pajak PPN menambah total bayar (bukan mengurangi).'
+                },
+                {
+                    type: 'true_false',
+                    merchant: 'Uni Resti',
+                    avatar: '👗',
+                    question: 'Soal Bunga Tabungan: Uni Resti menyimpan uang hasil dagang sebesar Rp2.000.000 di Bank Pasar dengan bunga tunggal 6% per tahun. Setelah 6 bulan, total tabungan Uni Resti di bank menjadi Rp2.060.000.',
+                    options: ['BENAR', 'SALAH'],
+                    correct: 0, // Bunga 6 bln = 6/12 * 6% * 2M = 3% * 2M = 60.000. Total = 2.060.000
+                    explanation: 'Bunga 6 bulan = (6/12) × 6% × Rp2.000.000 = 3% × 2.000.000 = Rp60.000.<br>Total Tabungan = 2.000.000 + 60.000 = <b>Rp2.060.000</b>. Pernyataan adalah BENAR.'
+                },
+                {
+                    type: 'matching',
+                    merchant: 'Uni Resti',
+                    avatar: '👗',
+                    question: 'Pasangkan istilah Aritmetika Sosial berikut dengan definisinya yang tepat:',
+                    pairs: [
+                        { id: 1, left: 'Bruto', right: 'Berat Kotor (Barang + Kemasan)' },
+                        { id: 2, left: 'Netto', right: 'Berat Bersih Barang' },
+                        { id: 3, left: 'Tara', right: 'Berat Kemasan / Pembungkus' }
+                    ],
+                    explanation: 'Bruto = Netto + Tara. Netto adalah berat isi bersih.'
+                }
+            ]
+        };
+
+        /* --- NAVIGATION & SCREEN SWITCHING --- */
+        function showScreen(screenId) {
+            playSound('click');
+            ['screen-register', 'screen-levels', 'screen-gameplay', 'screen-level-complete', 'screen-certificate'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+
+            // Header stats visibility
+            if (screenId === 'screen-register') {
+                document.getElementById('game-stats-header').classList.add('hidden');
+            } else {
+                document.getElementById('game-stats-header').classList.remove('hidden');
+                updateHeaderStats();
+            }
+        }
+
+        function updateHeaderStats() {
+            document.getElementById('player-coins').innerText = player.coins;
+            document.getElementById('player-score').innerText = player.score + ' Pts';
+            document.getElementById('player-tag').innerText = `${player.name} (${player.class})`;
+        }
+
+        function selectAvatar(avatarKey) {
+            playSound('click');
+            player.avatar = avatarKey;
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('clay-avatar-selected'));
+            document.getElementById(`avatar-${avatarKey}`).classList.add('clay-avatar-selected');
+        }
+
+        function startGame(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('input-name').value.trim();
+            const classInput = document.getElementById('input-class').value;
+
+            if (!nameInput) return;
+
+            player.name = nameInput;
+            player.class = classInput;
+            
+            showScreen('screen-levels');
+        }
+
+        /* --- LEVEL MANAGEMENT --- */
+        function updateLevelMapUI() {
+            // Level 2 unlock status
+            if (player.unlockedLevel >= 2) {
+                const card2 = document.getElementById('card-level-2');
+                card2.classList.remove('opacity-60');
+                card2.classList.add('border-blue-400');
+                document.getElementById('status-level-2').className = "text-xs font-bold text-blue-700 mb-2";
+                document.getElementById('status-level-2').innerHTML = `Status: Terbuka`;
+                const btn2 = document.getElementById('btn-level-2');
+                btn2.disabled = false;
+                btn2.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn2.innerHTML = `Buka Lapak <i class="fa-solid fa-chevron-right ml-1"></i>`;
+            }
+
+            // Level 3 unlock status
+            if (player.unlockedLevel >= 3) {
+                const card3 = document.getElementById('card-level-3');
+                card3.classList.remove('opacity-60');
+                card3.classList.add('border-emerald-500');
+                document.getElementById('status-level-3').className = "text-xs font-bold text-emerald-700 mb-2";
+                document.getElementById('status-level-3').innerHTML = `Status: Terbuka`;
+                const btn3 = document.getElementById('btn-level-3');
+                btn3.disabled = false;
+                btn3.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn3.innerHTML = `Buka Lapak <i class="fa-solid fa-chevron-right ml-1"></i>`;
+            }
+
+            // All levels completed banner
+            if (player.unlockedLevel > 3) {
+                document.getElementById('cert-unlocked-banner').classList.remove('hidden');
+            }
+        }
+
+        function startLevel(levelNum) {
+            currentLevel = levelNum;
+            currentQuestionIdx = 0;
+            player.levelScores[levelNum] = 0;
+            showScreen('screen-gameplay');
+            loadQuestion();
+        }
+
+        /* --- QUIZ DISPLAY ENGINE --- */
+        function loadQuestion() {
+            const qList = quizData[currentLevel];
+            const q = qList[currentQuestionIdx];
+
+            // Reset States
+            selectedSingleChoice = null;
+            selectedMultipleChoices = [];
+            matchedPairsUser = {};
+
+            document.getElementById('feedback-box').classList.add('hidden');
+            document.getElementById('btn-submit-answer').classList.remove('hidden');
+            document.getElementById('btn-next-question').classList.add('hidden');
+
+            // Header level & progress info
+            document.getElementById('level-badge').innerText = `LEVEL ${currentLevel}`;
+            document.getElementById('current-q-num').innerText = currentQuestionIdx + 1;
+            document.getElementById('total-q-num').innerText = qList.length;
+            const progressPercent = ((currentQuestionIdx + 1) / qList.length) * 100;
+            document.getElementById('q-progress-bar').style.width = `${progressPercent}%`;
+
+            // Avatar & Question info
+            const avatarInfo = avatarIcons[player.avatar] || avatarIcons['mang_ujang'];
+            document.getElementById('merchant-avatar').innerText = avatarInfo.icon;
+            document.getElementById('merchant-dialog-title').innerText = `${q.merchant} (${avatarInfo.title.split('(')[1].replace(')', '')}):`;
+            document.getElementById('question-text').innerText = q.question;
+
+            // Question Type Badge
+            const typeNames = {
+                single: 'Pilihan Ganda',
+                multiple: 'Pilihan Kompleks (HOTS)',
+                true_false: 'Benar / Salah',
+                matching: 'Menjodohkan Konsep'
+            };
+            document.getElementById('question-type-badge').innerText = typeNames[q.type];
+
+            // Hide all containers
+            document.getElementById('type-single-choice').classList.add('hidden');
+            document.getElementById('type-multiple-choice').classList.add('hidden');
+            document.getElementById('type-true-false').classList.add('hidden');
+            document.getElementById('type-matching').classList.add('hidden');
+
+            // Render based on Question Type
+            if (q.type === 'single') {
+                renderSingleChoice(q);
+            } else if (q.type === 'multiple') {
+                renderMultipleChoice(q);
+            } else if (q.type === 'true_false') {
+                renderTrueFalse(q);
+            } else if (q.type === 'matching') {
+                renderMatching(q);
+            }
+        }
+
+        /* 1. Single Choice Renderer */
+        function renderSingleChoice(q) {
+            const container = document.getElementById('type-single-choice');
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+
+            const labels = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `option-single-btn p-3.5 rounded-2xl border-3 border-slate-300 text-left font-bold text-sm hover:border-blue-400 bg-white shadow-sm flex items-center transition`;
+                btn.onclick = () => selectSingleOption(idx, btn);
+                btn.innerHTML = `
+                    <span class="w-7 h-7 bg-amber-200 text-amber-900 rounded-xl flex items-center justify-center font-extrabold mr-3 shrink-0">${labels[idx]}</span>
+                    <span>${opt}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectSingleOption(idx, el) {
+            playSound('click');
+            selectedSingleChoice = idx;
+            document.querySelectorAll('.option-single-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50', 'shadow-md');
+                btn.classList.add('bg-white');
+            });
+            el.classList.add('border-blue-500', 'bg-blue-50', 'shadow-md');
+        }
+
+        /* 2. Multiple Choice (Complex) Renderer */
+        function renderMultipleChoice(q) {
+            const container = document.getElementById('type-multiple-choice');
+            const list = document.getElementById('multiple-options-list');
+            list.innerHTML = '';
+            container.classList.remove('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const item = document.createElement('div');
+                item.className = `p-3.5 rounded-2xl border-3 border-slate-300 bg-white font-semibold text-sm flex items-center gap-3 cursor-pointer hover:border-orange-300 transition`;
+                item.onclick = () => toggleMultipleOption(idx, item);
+                item.innerHTML = `
+                    <div id="chk-box-${idx}" class="w-6 h-6 border-2 border-slate-400 rounded-lg flex items-center justify-center text-white text-xs bg-white font-bold shrink-0">
+                        <i class="fa-solid fa-check hidden"></i>
+                    </div>
+                    <span>${opt}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function toggleMultipleOption(idx, el) {
+            playSound('click');
+            const chkBox = document.getElementById(`chk-box-${idx}`);
+            const icon = chkBox.querySelector('i');
+
+            if (selectedMultipleChoices.includes(idx)) {
+                selectedMultipleChoices = selectedMultipleChoices.filter(i => i !== idx);
+                chkBox.classList.remove('bg-orange-500', 'border-orange-600');
+                chkBox.classList.add('bg-white', 'border-slate-400');
+                icon.classList.add('hidden');
+                el.classList.remove('bg-orange-50', 'border-orange-400');
+            } else {
+                selectedMultipleChoices.push(idx);
+                chkBox.classList.add('bg-orange-500', 'border-orange-600');
+                chkBox.classList.remove('bg-white', 'border-slate-400');
+                icon.classList.remove('hidden');
+                el.classList.add('bg-orange-50', 'border-orange-400');
+            }
+        }
+
+        /* 3. True / False Renderer */
+        function renderTrueFalse(q) {
+            const container = document.getElementById('type-true-false');
+            container.innerHTML = '';
+            container.classList.remove('hidden');
+
+            const btnTrue = document.createElement('button');
+            btnTrue.className = `tf-btn p-4 rounded-2xl border-4 border-slate-300 bg-white font-extrabold text-lg text-emerald-700 hover:border-emerald-400 flex flex-col items-center gap-2 transition`;
+            btnTrue.onclick = () => selectTF(0, btnTrue);
+            btnTrue.innerHTML = `<span class="text-3xl">👍</span> BENAR`;
+
+            const btnFalse = document.createElement('button');
+            btnFalse.className = `tf-btn p-4 rounded-2xl border-4 border-slate-300 bg-white font-extrabold text-lg text-rose-700 hover:border-rose-400 flex flex-col items-center gap-2 transition`;
+            btnFalse.onclick = () => selectTF(1, btnFalse);
+            btnFalse.innerHTML = `<span class="text-3xl">👎</span> SALAH`;
+
+            container.appendChild(btnTrue);
+            container.appendChild(btnFalse);
+        }
+
+        function selectTF(val, el) {
+            playSound('click');
+            selectedSingleChoice = val;
+            document.querySelectorAll('.tf-btn').forEach(btn => {
+                btn.classList.remove('border-emerald-500', 'border-rose-500', 'bg-emerald-50', 'bg-rose-50');
+            });
+            if (val === 0) {
+                el.classList.add('border-emerald-500', 'bg-emerald-50');
+            } else {
+                el.classList.add('border-rose-500', 'bg-rose-50');
+            }
+        }
+
+        /* 4. Matching Concept Renderer */
+        function renderMatching(q) {
+            const container = document.getElementById('type-matching');
+            const pairBox = document.getElementById('matching-pairs-container');
+            pairBox.innerHTML = '';
+            container.classList.remove('hidden');
+
+            // Shuffle right options for matching challenge
+            const rightOptions = q.pairs.map(p => p.right).sort(() => Math.random() - 0.5);
+
+            q.pairs.forEach((pair) => {
+                const row = document.createElement('div');
+                row.className = `grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-2xl border-2 border-slate-300 items-center`;
+
+                let selectOptionsHTML = `<option value="">-- Pilih Pasangan Pas --</option>`;
+                rightOptions.forEach(optVal => {
+                    selectOptionsHTML += `<option value="${optVal}">${optVal}</option>`;
+                });
+
+                row.innerHTML = `
+                    <div class="font-bold text-xs md:text-sm text-slate-800 bg-amber-100 p-2.5 rounded-xl border border-amber-300">
+                        ${pair.left}
+                    </div>
+                    <div>
+                        <select onchange="onMatchSelect(${pair.id}, this.value)" class="w-full p-2.5 rounded-xl border-2 border-blue-300 bg-blue-50 font-semibold text-xs text-blue-950 focus:outline-none focus:border-blue-500">
+                            ${selectOptionsHTML}
+                        </select>
+                    </div>
+                `;
+                pairBox.appendChild(row);
+            });
+        }
+
+        function onMatchSelect(pairId, selectedValue) {
+            playSound('click');
+            matchedPairsUser[pairId] = selectedValue;
+        }
+
+        /* --- ANSWER VERIFICATION & HOTS FEEDBACK --- */
+        function submitAnswer() {
+            const qList = quizData[currentLevel];
+            const q = qList[currentQuestionIdx];
+            let isCorrect = false;
+
+            // Validate based on type
+            if (q.type === 'single' || q.type === 'true_false') {
+                if (selectedSingleChoice === null) {
+                    alert('Pilih salah satu jawaban terlebih dahulu!');
+                    return;
+                }
+                isCorrect = (selectedSingleChoice === q.correct);
+            } else if (q.type === 'multiple') {
+                if (selectedMultipleChoices.length === 0) {
+                    alert('Pilih minimal satu pernyataan!');
+                    return;
+                }
+                // Check if arrays match
+                const userSorted = [...selectedMultipleChoices].sort().join(',');
+                const correctSorted = [...q.correct].sort().join(',');
+                isCorrect = (userSorted === correctSorted);
+            } else if (q.type === 'matching') {
+                if (Object.keys(matchedPairsUser).length < q.pairs.length) {
+                    alert('Lengkapi seluruh pasangan di sebelah kanan!');
+                    return;
+                }
+                isCorrect = q.pairs.every(p => matchedPairsUser[p.id] === p.right);
+            }
+
+            // Provide Points and Feedback
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('correct');
+                player.score += 25;
+                player.coins += 50;
+                player.levelScores[currentLevel] += 25;
+                updateHeaderStats();
+
+                feedbackBox.className = "mb-4 p-4 rounded-2xl text-xs md:text-sm font-semibold border-3 bg-green-100 border-green-400 text-green-950 shadow-sm";
+                feedbackBox.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1 text-green-700 font-extrabold">
+                        <i class="fa-solid fa-circle-check text-xl"></i>
+                        <span>JAWABAN BENAR! (+25 Pts, +50 Koin)</span>
+                    </div>
+                    <div>${q.explanation}</div>
+                `;
+            } else {
+                playSound('wrong');
+                feedbackBox.className = "mb-4 p-4 rounded-2xl text-xs md:text-sm font-semibold border-3 bg-rose-100 border-rose-400 text-rose-950 shadow-sm";
+                feedbackBox.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1 text-rose-700 font-extrabold">
+                        <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        <span>PERHITUNGAN BELUM TEPAT!</span>
+                    </div>
+                    <div><b>Pembahasan HOTS:</b> ${q.explanation}</div>
+                `;
+            }
+
+            document.getElementById('btn-submit-answer').classList.add('hidden');
+            document.getElementById('btn-next-question').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            const qList = quizData[currentLevel];
+            currentQuestionIdx++;
+
+            if (currentQuestionIdx < qList.length) {
+                loadQuestion();
+            } else {
+                // Complete Level
+                finishLevel();
+            }
+        }
+
+        function finishLevel() {
+            playSound('win');
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+            // Unlock Next Level logic
+            if (currentLevel === player.unlockedLevel && player.unlockedLevel < 3) {
+                player.unlockedLevel++;
+            } else if (currentLevel === 3) {
+                player.unlockedLevel = 4; // Completed All
+            }
+
+            updateLevelMapUI();
+
+            // Populate Summary Screen
+            document.getElementById('complete-level-title').innerText = `Level ${currentLevel}: Lapak Selesai!`;
+            const levelScore = player.levelScores[currentLevel];
+            const correctCount = levelScore / 25;
+            document.getElementById('summary-correct').innerText = `${correctCount} / 4 Soal`;
+            document.getElementById('summary-level-score').innerText = `+${levelScore} Pts`;
+            document.getElementById('summary-coins').innerText = `+${correctCount * 50} Koin`;
+
+            showScreen('screen-level-complete');
+        }
+
+        function continueToNextLevel() {
+            if (currentLevel < 3) {
+                startLevel(currentLevel + 1);
+            } else {
+                showScreen('screen-levels');
+            }
+        }
+
+        function quitToLevels() {
+            showScreen('screen-levels');
+        }
+
+        /* --- CERTIFICATE GENERATION --- */
+        function generateCertificate() {
+            playSound('win');
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
+
+            document.getElementById('cert-student-name').innerText = player.name.toUpperCase();
+            document.getElementById('cert-student-class').innerText = `Kelas: ${player.class} | SMP Negeri Matematika`;
+            document.getElementById('cert-total-score').innerText = `${player.score} Pts`;
+            document.getElementById('cert-total-coins').innerText = `${player.coins} Koin`;
+
+            // Date string
+            const today = new Date();
+            const dateStr = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+            document.getElementById('cert-date').innerText = dateStr;
+
+            // Predicate Logic
+            let predicate = "CUKUP";
+            if (player.score >= 250) {
+                predicate = "AMAT BAIK";
+            } else if (player.score >= 175) {
+                predicate = "BAIK";
+            } else {
+                predicate = "CUKUP";
+            }
+            document.getElementById('cert-predicate').innerText = predicate;
+
+            showScreen('screen-certificate');
+        }
+    </script>
+</body>
+</html>
